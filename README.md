@@ -5,7 +5,7 @@ Purposes of this project:
 1. Understand basic configuracion of vim.
 2. Save progress about understanding vim.
 
-```txt
+```console
 " Sets how many lines of history VIM has to remember
 set history=500
 
@@ -27,4 +27,8 @@ set hlsearch
 " let @b = '<80>kd<80>ku(i**^[<80><fd>a)bi**^[<80><fd>a' 
 
 :set cursorline
+
+command! ToLowercase :%s/.*/\L&/gc
 ```
+
+<img width="1616" alt="Image" src="https://github.com/user-attachments/assets/846ba699-31fc-4e93-aa27-7ee5fc880ed1" />

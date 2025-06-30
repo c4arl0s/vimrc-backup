@@ -19,3 +19,5 @@ set hlsearch
 " let @b = '<80>kd<80>ku(i**^[<80><fd>a)bi**^[<80><fd>a' 
 
 :set cursorline
+
+command! ToLowercase :%s/.*/\L&/gc
