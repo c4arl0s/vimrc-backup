@@ -3,11 +3,31 @@
 This repository includes an automated backup system to track changes in `~/.vimrc`, commit updates, and push them to the remote GitHub repository.
 
 ### Files Overview
+- **`install.sh`**: Installer script. Copies the repository `vimrc` to `$HOME/.vimrc` on any macOS system, creating a timestamped backup of any existing configuration.
 - **`backup_vimrc.sh`**: Core backup script. Compares `~/.vimrc` against the repository `vimrc`, creates a local timestamped snapshot under `~/.vimrc_backups/`, commits changes, and pushes to remote with retry support (for network reconnection on wake-up).
 - **`com.c4arl0s.vimrc-backup.plist`**: macOS LaunchAgent configuration. Runs on user login and daily at 09:00 AM (automatically triggers when the MacBook wakes up if missed).
 - **`setup.sh`**: Management CLI to install, test, view status, or uninstall the service.
 
-### Quick Setup
+---
+
+### Step 1: Install `~/.vimrc` on Any Mac
+
+Deploy this configuration to your user's home directory:
+
+```bash
+# Standard install (safely backs up existing ~/.vimrc if present)
+./install.sh
+
+# Install vimrc and automatically download vim-plug
+./install.sh --plug
+
+# View all options
+./install.sh --help
+```
+
+---
+
+### Step 2: Automated Daily / Wake-Up Sync Setup
 
 #### 1. Install macOS LaunchAgent (Recommended for Wake-Up Triggers)
 macOS LaunchAgents natively catch up missed schedules as soon as your MacBook wakes up:
