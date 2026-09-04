@@ -25,8 +25,9 @@ Usage: $(basename "$0") <command>
 Commands:
   install           Install and activate macOS LaunchAgent (Runs on login & wake-up)
   install-cron      Install a traditional cron job (crontab)
+  check-plugins     Verify if declared vim plugins are installed or missing
   test              Run backup_vimrc.sh immediately and display log output
-  status            Check whether the LaunchAgent or Cron is configured and active
+  status            Check whether the LaunchAgent, Cron, and Plugins are configured
   uninstall         Unload and remove LaunchAgent and Cron backup tasks
   help              Display this help message
 
@@ -174,6 +175,14 @@ check_status() {
     fi
     echo ""
 
+    echo "--- Vim Plugins Status ---"
+    if [ -x "${SCRIPT_DIR}/install.sh" ]; then
+        "${SCRIPT_DIR}/install.sh" --check-plugins
+    else
+        echo "install.sh not found."
+    fi
+    echo ""
+
     echo "--- Recent Log Entries (${LOG_FILE}) ---"
     if [ -f "${LOG_FILE}" ]; then
         tail -n 10 "${LOG_FILE}"
@@ -205,6 +214,14 @@ case "${1:-help}" in
         ;;
     install-cron)
         install_cron
+        ;;
+    check-plugins)
+        if [ -x "${SCRIPT_DIR}/install.sh" ]; then
+            "${SCRIPT_DIR}/install.sh" --check-plugins
+        else
+            echo "Error: install.sh not found." >&2
+            exit 1
+        fi
         ;;
     test)
         run_test

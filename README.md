@@ -15,14 +15,39 @@ This repository includes an automated backup system to track changes in `~/.vimr
 Deploy this configuration to your user's home directory:
 
 ```bash
-# Standard install (safely backs up existing ~/.vimrc if present)
+# Standard install (safely backs up existing ~/.vimrc & verifies plugin status)
 ./install.sh
 
-# Install vimrc and automatically download vim-plug
-./install.sh --plug
+# Verify if declared plugins are installed or missing without modifying files
+./install.sh --check-plugins
+
+# Install vimrc, vim-plug, and automatically download any missing plugins
+./install.sh --install-plugins
 
 # View all options
 ./install.sh --help
+```
+
+---
+
+### Plugin Verification
+
+You can verify whether all declared plugins in your `~/.vimrc` are currently installed or missing on your system anytime:
+
+```bash
+# Check plugin status via install.sh
+./install.sh --check-plugins
+
+# Or check via setup utility
+./setup.sh check-plugins
+
+# Or view complete system & plugin status
+./setup.sh status
+```
+
+If missing plugins are detected, install them directly with:
+```bash
+vim +PlugInstall +qall
 ```
 
 ---
