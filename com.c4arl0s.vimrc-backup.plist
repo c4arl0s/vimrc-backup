@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.c4arl0s.vimrc-backup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/carlossantiagocruz/iOS-Projects/vimrc-backup/backup_vimrc.sh</string>
+    </array>
+
+    <!-- Run when user logs in or when the agent is loaded -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Schedule to run daily at 09:00.
+         On macOS, if the MacBook is asleep at this time, launchd
+         automatically runs the job immediately when the computer wakes up. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/carlossantiagocruz/Library/Logs/vimrc-backup.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/carlossantiagocruz/Library/Logs/vimrc-backup.log</string>
+</dict>
+</plist>
