@@ -39,9 +39,12 @@ fi
 FORCE=false
 QUIET=false
 SHOW_NOTIFICATIONS=true
+ENABLE_JARVIS=true
+JARVIS_VOICE="Daniel"
+JARVIS_RATE=165
 
 # ------------------------------------------------------------------------------
-# Logging & Notification Helpers
+# Logging, Notification & JARVIS Voice Helpers
 # ------------------------------------------------------------------------------
 log() {
     local timestamp
@@ -55,15 +58,49 @@ log() {
     fi
 }
 
+get_greeting() {
+    local hour
+    hour=$(date +%H)
+    # Remove leading zero if present
+    hour=$((10#$hour))
+    if [ "${hour}" -ge 4 ] && [ "${hour}" -lt 12 ]; then
+        echo "Good morning, sir."
+    elif [ "${hour}" -ge 12 ] && [ "${hour}" -lt 18 ]; then
+        echo "Good afternoon, sir."
+    else
+        echo "Good evening, sir."
+    fi
+}
+
+speak_jarvis() {
+    local text="$1"
+    if [ "${ENABLE_JARVIS}" = true ] && command -v say >/dev/null 2>&1; then
+        # Check if the requested voice is installed
+        local voice_args=()
+        if say -v '?' 2>/dev/null | grep -qi "^${JARVIS_VOICE} "; then
+            voice_args=(-v "${JARVIS_VOICE}")
+        fi
+        say "${voice_args[@]}" -r "${JARVIS_RATE}" "${text}" 2>/dev/null &
+    fi
+}
+
 notify() {
     local message="$1"
     local subtitle="${2:-}"
+    local voice_text="${3:-}"
+
+    # Visual notification banner
     if [ "${SHOW_NOTIFICATIONS}" = true ] && command -v osascript >/dev/null 2>&1; then
         if [ -n "${subtitle}" ]; then
             osascript -e "display notification \"${message}\" with title \"Vimrc Backup\" subtitle \"${subtitle}\"" 2>/dev/null || true
         else
             osascript -e "display notification \"${message}\" with title \"Vimrc Backup\"" 2>/dev/null || true
         fi
+    fi
+
+    # JARVIS voice audio
+    if [ -n "${voice_text}" ]; then
+        speak_jarvis "${voice_text}"
     fi
 }
 
@@ -75,16 +112,18 @@ show_help() {
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  -f, --force       Force backup and push even if no content differences are detected
-  -q, --quiet       Suppress stdout messages (logs are still written to ${LOG_FILE})
-  --no-notify       Disable macOS desktop banner notifications
-  -h, --help        Display this help message and exit
+  -f, --force          Force backup and push even if no content differences are detected
+  -q, --quiet          Suppress stdout messages (logs are still written to ${LOG_FILE})
+  --no-notify          Disable macOS desktop banner notifications
+  --no-voice           Disable JARVIS voice messages
+  --voice <name>       Set speech voice (default: Daniel)
+  -h, --help           Display this help message and exit
 
 Description:
   Verifies if ~/.vimrc has changed compared to the git-tracked vimrc file.
   If changes exist (or unpushed commits exist), updates the repository,
   creates a commit, and pushes to remote.
-  Displays a macOS notification banner on each run.
+  Displays a macOS notification banner and reproduces a JARVIS voice message.
 EOF
 }
 
@@ -101,6 +140,14 @@ while [[ $# -gt 0 ]]; do
         --no-notify)
             SHOW_NOTIFICATIONS=false
             shift
+            ;;
+        --no-voice)
+            ENABLE_JARVIS=false
+            shift
+            ;;
+        --voice)
+            JARVIS_VOICE="$2"
+            shift 2
             ;;
         -h|--help)
             show_help
@@ -186,14 +233,19 @@ if [ "${has_changes}" = true ] || [ "${FORCE}" = true ]; then
         log "Committed new changes: '${COMMIT_MSG}'."
 
         # 4. Push to remote
+        GREETING="$(get_greeting)"
         if push_with_retry; then
-            notify "New changes backed up and pushed to GitHub." "Synced to Remote"
+            notify "New changes backed up and pushed to GitHub." "Synced to Remote" \
+                   "${GREETING} New modifications detected in your vim configuration. Changes have been committed and pushed to GitHub."
         else
-            notify "Changes saved locally. Push deferred (offline)." "Offline Backup"
+            notify "Changes saved locally. Push deferred (offline)." "Offline Backup" \
+                   "Sir, your vim configuration has been backed up locally. Network connection is currently offline; remote push will resume shortly."
         fi
     else
         log "No git changes after staging. Working tree is clean."
-        notify "Checked: ~/.vimrc is up to date." "No Changes"
+        GREETING="$(get_greeting)"
+        notify "Checked: ~/.vimrc is up to date." "No Changes" \
+               "${GREETING} Vim configuration verified. All systems are up to date."
     fi
 
 else
@@ -206,14 +258,18 @@ else
         if [ "${UNPUSHED_COUNT}" -gt 0 ]; then
             log "Found ${UNPUSHED_COUNT} unpushed commit(s) from previous run. Pushing now..."
             if push_with_retry; then
-                notify "Synced ${UNPUSHED_COUNT} previously unpushed commit(s) to GitHub." "Synced to Remote"
+                GREETING="$(get_greeting)"
+                notify "Synced ${UNPUSHED_COUNT} previously unpushed commit(s) to GitHub." "Synced to Remote" \
+                       "${GREETING} Pending vim commits have now been pushed to the remote repository."
                 synced_unpushed=true
             fi
         fi
     fi
 
     if [ "${synced_unpushed}" = false ]; then
-        notify "Checked: ~/.vimrc is up to date." "No Changes"
+        GREETING="$(get_greeting)"
+        notify "Checked: ~/.vimrc is up to date." "No Changes" \
+               "${GREETING} Vim configuration verified. All systems are up to date."
     fi
 fi
 

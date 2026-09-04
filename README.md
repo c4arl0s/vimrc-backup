@@ -36,7 +36,18 @@ Run the backup script directly to test detecting changes and pushing:
 tail -f ~/Library/Logs/vimrc-backup.log
 ```
 
-#### 5. Uninstall
+#### 5. JARVIS Voice & Banner Notifications
+Whenever the backup check runs upon wake-up, macOS displays a banner notification and speaks an Iron Man / JARVIS style status report using the British voice `Daniel`:
+- **In the morning:** *"Good morning, sir. Vim configuration verified. All systems are up to date."*
+- **When changes are made:** *"Good morning, sir. New modifications detected in your vim configuration. Changes have been committed and pushed to GitHub."*
+- **When offline:** *"Sir, your vim configuration has been backed up locally. Network connection is currently offline; remote push will resume shortly."*
+
+Options in [`backup_vimrc.sh`](backup_vimrc.sh):
+- `--no-voice`: Disable speech while keeping banner notifications.
+- `--no-notify`: Disable visual banner notifications.
+- `--voice <name>`: Choose a different system voice (default: `Daniel`).
+
+#### 6. Uninstall
 ```bash
 ./setup.sh uninstall
 ```
