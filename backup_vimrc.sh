@@ -38,9 +38,10 @@ fi
 # Default flags
 FORCE=false
 QUIET=false
+SHOW_NOTIFICATIONS=true
 
 # ------------------------------------------------------------------------------
-# Logging Helpers
+# Logging & Notification Helpers
 # ------------------------------------------------------------------------------
 log() {
     local timestamp
@@ -56,8 +57,13 @@ log() {
 
 notify() {
     local message="$1"
-    if command -v osascript >/dev/null 2>&1; then
-        osascript -e "display notification \"${message}\" with title \"Vimrc Backup\"" 2>/dev/null || true
+    local subtitle="${2:-}"
+    if [ "${SHOW_NOTIFICATIONS}" = true ] && command -v osascript >/dev/null 2>&1; then
+        if [ -n "${subtitle}" ]; then
+            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\" subtitle \"${subtitle}\"" 2>/dev/null || true
+        else
+            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\"" 2>/dev/null || true
+        fi
     fi
 }
 
@@ -69,14 +75,16 @@ show_help() {
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  -f, --force    Force backup and push even if no content differences are detected
-  -q, --quiet    Suppress stdout messages (logs are still written to ${LOG_FILE})
-  -h, --help     Display this help message and exit
+  -f, --force       Force backup and push even if no content differences are detected
+  -q, --quiet       Suppress stdout messages (logs are still written to ${LOG_FILE})
+  --no-notify       Disable macOS desktop banner notifications
+  -h, --help        Display this help message and exit
 
 Description:
   Verifies if ~/.vimrc has changed compared to the git-tracked vimrc file.
   If changes exist (or unpushed commits exist), updates the repository,
   creates a commit, and pushes to remote.
+  Displays a macOS notification banner on each run.
 EOF
 }
 
@@ -88,6 +96,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -q|--quiet)
             QUIET=true
+            shift
+            ;;
+        --no-notify)
+            SHOW_NOTIFICATIONS=false
             shift
             ;;
         -h|--help)
@@ -175,24 +187,33 @@ if [ "${has_changes}" = true ] || [ "${FORCE}" = true ]; then
 
         # 4. Push to remote
         if push_with_retry; then
-            notify "Vimrc backed up and pushed to remote successfully."
+            notify "New changes backed up and pushed to GitHub." "Synced to Remote"
         else
-            notify "Vimrc backed up locally. Push deferred (offline)."
+            notify "Changes saved locally. Push deferred (offline)." "Offline Backup"
         fi
     else
         log "No git changes after staging. Working tree is clean."
+        notify "Checked: ~/.vimrc is up to date." "No Changes"
     fi
 
 else
     log "No changes detected between ${SOURCE_VIMRC} and repository."
 
     # Check if there are any unpushed commits from an earlier offline run
+    synced_unpushed=false
     if git rev-parse --verify "@{u}" >/dev/null 2>&1; then
         UNPUSHED_COUNT="$(git rev-list @{u}..HEAD --count 2>/dev/null || echo 0)"
         if [ "${UNPUSHED_COUNT}" -gt 0 ]; then
             log "Found ${UNPUSHED_COUNT} unpushed commit(s) from previous run. Pushing now..."
-            push_with_retry || true
+            if push_with_retry; then
+                notify "Synced ${UNPUSHED_COUNT} previously unpushed commit(s) to GitHub." "Synced to Remote"
+                synced_unpushed=true
+            fi
         fi
+    fi
+
+    if [ "${synced_unpushed}" = false ]; then
+        notify "Checked: ~/.vimrc is up to date." "No Changes"
     fi
 fi
 
