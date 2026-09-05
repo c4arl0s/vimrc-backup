@@ -80,7 +80,9 @@ speak_jarvis() {
         if say -v '?' 2>/dev/null | grep -qi "^${JARVIS_VOICE} "; then
             voice_args=(-v "${JARVIS_VOICE}")
         fi
-        say "${voice_args[@]}" -r "${JARVIS_RATE}" "${text}" 2>/dev/null &
+        log "JARVIS Voice announcement: '${text}'"
+        # Run synchronously so launchd/subshell does not kill speech before it completes
+        say "${voice_args[@]}" -r "${JARVIS_RATE}" "${text}" 2>> "${LOG_FILE}" || true
     fi
 }
 
@@ -92,9 +94,9 @@ notify() {
     # Visual notification banner
     if [ "${SHOW_NOTIFICATIONS}" = true ] && command -v osascript >/dev/null 2>&1; then
         if [ -n "${subtitle}" ]; then
-            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\" subtitle \"${subtitle}\"" 2>/dev/null || true
+            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\" subtitle \"${subtitle}\" sound name \"default\"" 2>/dev/null || true
         else
-            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\"" 2>/dev/null || true
+            osascript -e "display notification \"${message}\" with title \"Vimrc Backup\" sound name \"default\"" 2>/dev/null || true
         fi
     fi
 
