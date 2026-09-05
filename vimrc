@@ -19,6 +19,10 @@ set clipboard=unnamed
 " Highlight searches
 set hlsearch
 
+" Always show the status bar at the bottom
+set laststatus=2
+
+" Highlight the line your cursor is currently on
 :set cursorline
 
 " Custom Commands
