@@ -65,6 +65,8 @@ install_launchagent() {
     <array>
         <string>/bin/bash</string>
         <string>${BACKUP_SCRIPT}</string>
+        <string>--delay</string>
+        <string>60</string>
     </array>
 
     <!-- Run when user logs in -->
@@ -109,6 +111,7 @@ EOF
     echo ""
     echo "Summary:"
     echo "- Script: ${BACKUP_SCRIPT}"
+    echo "- Delay:  60s (stabilization wait on wake-up)"
     echo "- Plist:  ${PLIST_DEST}"
     echo "- Logs:   ${LOG_FILE}"
 }

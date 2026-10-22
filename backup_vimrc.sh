@@ -42,6 +42,7 @@ SHOW_NOTIFICATIONS=true
 ENABLE_JARVIS=true
 JARVIS_VOICE="Daniel"
 JARVIS_RATE=165
+DELAY=0
 
 # ------------------------------------------------------------------------------
 # Logging, Notification & JARVIS Voice Helpers
@@ -116,6 +117,8 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   -f, --force          Force backup and push even if no content differences are detected
   -q, --quiet          Suppress stdout messages (logs are still written to ${LOG_FILE})
+  -d, --delay <sec>    Wait specified seconds before running check (useful for wake-up stabilization)
+  --wait <sec>         Alias for --delay
   --no-notify          Disable macOS desktop banner notifications
   --no-voice           Disable JARVIS voice messages
   --voice <name>       Set speech voice (default: Daniel)
@@ -138,6 +141,10 @@ while [[ $# -gt 0 ]]; do
         -q|--quiet)
             QUIET=true
             shift
+            ;;
+        -d|--delay|--wait)
+            DELAY="$2"
+            shift 2
             ;;
         --no-notify)
             SHOW_NOTIFICATIONS=false
@@ -204,6 +211,14 @@ push_with_retry() {
     log "WARNING: Could not push to remote after ${max_attempts} attempts. Changes remain committed locally and will be pushed on the next run."
     return 1
 }
+
+# ------------------------------------------------------------------------------
+# System Stabilization Delay (Optional wait before execution)
+# ------------------------------------------------------------------------------
+if [ "${DELAY}" -gt 0 ] 2>/dev/null; then
+    log "Waiting ${DELAY}s for system, network, and audio services to fully stabilize after wake-up..."
+    sleep "${DELAY}"
+fi
 
 # ------------------------------------------------------------------------------
 # Check for Changes
