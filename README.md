@@ -88,6 +88,8 @@ Whenever the backup check runs upon wake-up, macOS displays a banner notificatio
 - **When offline:** *"Sir, your vim configuration has been backed up locally. Network connection is currently offline; remote push will resume shortly."*
 
 Options in [`backup_vimrc.sh`](backup_vimrc.sh):
+- `-d, --delay <sec>`: Wait specified seconds before running check (default: 60s in LaunchAgent for wake-up stabilization, 0s for manual runs).
+- `--wait <sec>`: Alias for `--delay`.
 - `--no-voice`: Disable speech while keeping banner notifications.
 - `--no-notify`: Disable visual banner notifications.
 - `--voice <name>`: Choose a different system voice (default: `Daniel`).
